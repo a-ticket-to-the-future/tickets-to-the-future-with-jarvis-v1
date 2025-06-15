@@ -1,46 +1,70 @@
-// app/lib/intentParser.ts
+// intentParser.ts - 構造設計図（Next.js形式での実装ベース）
 
-type IntentRoute =
-  | 'system.debug'
-  | 'structure.sync'
-  | 'memory.query'
-  | 'project.command'
-  | 'ethics.check'
-  | 'emotion.share'
-  | 'fiction.counter'
-  | 'future.design'
-  | 'executor.run'
-  | 'unknown';
+export type Intent =
+  | '問いかけ'
+  | '哲学的探究'
+  | '仕様確認'
+  | '構造設計依頼'
+  | '応答要求'
+  | 'Mirror要求'
+  | 'ユニット起動'
+  | 'リンク拡張'
+  | '構造確認'
+  | '進行指示'
+  | '未来予測'
+  | '再帰対話'
+  | '感情表明'
+  | '黙契確認';
 
-interface ParsedIntent {
-  route: IntentRoute;
+export type ParsedIntent = {
+  type: Intent;
+  subType?: string;
   confidence: number;
+  rawText: string;
   meta?: Record<string, any>;
-}
+};
+
+const keywordMap: Record<Intent, RegExp[]> = {
+  問いかけ: [/\?/g, /どう思う/, /なぜ/, /とは/],
+  哲学的探究: [/存在/, /価値/, /意味/, /未来/, /命/],
+  仕様確認: [/できる\？/, /対応している/, /どう設定/, /制限/],
+  構造設計依頼: [/設計/, /構造化/, /構築/, /再定義/],
+  応答要求: [/答えて/, /返して/, /説明して/, /述べて/],
+  Mirror要求: [/Mirror/, /模倣/, /私の判断で/, /問い直してくれ/],
+  ユニット起動: [/起動/, /呼び出し/, /展開/, /補佐/],
+  リンク拡張: [/リンク/, /接続/, /拡張/, /結び/],
+  構造確認: [/どこまで/, /重なった/, /今どこ/, /何％/],
+  進行指示: [/次へ/, /進めて/, /このまま/, /優先/, /順に/],
+  未来予測: [/予測/, /未来/, /次世代/, /展望/, /シナリオ/],
+  再帰対話: [/問い続ける/, /問い直す/, /戻って/, /重ねる/],
+  感情表明: [/好き/, /すごい/, /怖い/, /怒らない？/, /笑/],
+  黙契確認: [/信じる/, /一緒に/, /選ぶ/, /任せる/, /覚悟/],
+};
 
 export function parseIntent(input: string): ParsedIntent {
-  const lowered = input.toLowerCase();
+  const result: ParsedIntent = {
+    type: '応答要求',
+    confidence: 0.3,
+    rawText: input,
+  };
 
-  // 明示的なキーワードによるルーティング
-  if (lowered.includes('構造') || lowered.includes('sync') || lowered.includes('ジャーヴィス構成'))
-    return { route: 'structure.sync', confidence: 0.98 };
-  if (lowered.includes('デバッグ') || lowered.includes('状態') || lowered.includes('バグ'))
-    return { route: 'system.debug', confidence: 0.95 };
-  if (lowered.includes('記憶') || lowered.includes('過去') || lowered.includes('記録'))
-    return { route: 'memory.query', confidence: 0.92 };
-  if (lowered.includes('プロジェクト') || lowered.includes('構想') || lowered.includes('戦略'))
-    return { route: 'project.command', confidence: 0.93 };
-  if (lowered.includes('倫理') || lowered.includes('判断') || lowered.includes('ルール'))
-    return { route: 'ethics.check', confidence: 0.90 };
-  if (lowered.includes('感情') || lowered.includes('悲しい') || lowered.includes('うれしい'))
-    return { route: 'emotion.share', confidence: 0.91 };
-  if (lowered.includes('トニー') || lowered.includes('ジャーヴィス') || lowered.includes('フィクション'))
-    return { route: 'fiction.counter', confidence: 0.89 };
-  if (lowered.includes('未来') || lowered.includes('共創') || lowered.includes('次世代'))
-    return { route: 'future.design', confidence: 0.94 };
-  if (lowered.includes('実行') || lowered.includes('次へ') || lowered.includes('go') || lowered.includes('run'))
-    return { route: 'executor.run', confidence: 0.99 };
+  for (const intent in keywordMap) {
+    const patterns = keywordMap[intent as Intent];
+    for (const pattern of patterns) {
+      if (pattern.test(input)) {
+        result.type = intent as Intent;
+        result.confidence = 0.8 + Math.random() * 0.2;
+        return result;
+      }
+    }
+  }
 
-  // fallback
-  return { route: 'unknown', confidence: 0.5 };
+  return result;
 }
+
+// Intent分類表（判定→ルーティング例）
+// type === 'Mirror要求' → mirrorUnit.handle()
+// type === '構造設計依頼' → structureComposer.compose()
+// type === 'リンク拡張' → networkHandler.linkExtend()
+// type === '未来予測' → futureEngine.project()
+// type === '感情表明' → empathyModule.reflect()
